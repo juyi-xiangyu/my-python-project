@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo List</title>
+    <script src="./node_modules/jquery/dist/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Todo List</h1>
+    <form id="add-todo-form">
+        <input type="text" id="task" placeholder="New task">
+        <button type="submit">Add task</button>
+    </form>
+    <ul id="todo-list"></ul>
+    <script>
+      $(document).ready(function(){
+        // 获取所有的todos并显示
+        $.getJSON('http://127.0.0.1:8080/todos', function(data) {
+          console.log(data,'-----');
+            data.forEach(function(todo) {
+                $('#todo-list').append('<li>' + todo.task + '</li>' + '<button type="button" class="delete">删除</button>');
+            });
+        });
+
+        // 提交新的todo
+        $('#add-todo-form').on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: 'http://127.0.0.1:8080/todos',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                    $('#todo-list').append('<li>' + data.todo + '</li>' + '<button type="button" class="delete">删除</button>');
+                    // 删除输入框内容
+                    $('#task').val('');
+                },
+                data: JSON.stringify({ task: $('#task').val() })
+            });
+        });
+
+        // 删除todo
+        $('#todo-list').on('click', '.delete', function() {
+            var task = $(this).prev().text();
+            var self = this;
+            $.ajax({
+                url: 'http://127.0.0.1:8080/todos',
+                type: 'delete',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                    $(self).prev().remove();
+                    $(self).remove();
+                }, 
+                data: JSON.stringify({ task: task })
+            });
+        });
+      });
+    </script>
+</body>
+</html>
